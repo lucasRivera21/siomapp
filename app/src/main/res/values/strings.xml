@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">siomaAppInicio</string>
+    <string name="home_title">Inicio</string>
+    <string name="left_arrow_description">left arrow</string>
+    <string name="right_arrow_description">right arrow</string>
+    <string name="algo" />
+    <string name="date" >Fecha</string>
+</resources>
