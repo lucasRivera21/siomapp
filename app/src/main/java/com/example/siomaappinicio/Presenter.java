@@ -1,6 +1,7 @@
 package com.example.siomaappinicio;
 
 import android.app.DatePickerDialog;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -14,7 +15,7 @@ import java.util.Map;
 public class Presenter implements MainScreenContract.Presenter{
     MainScreenContract.View view;
     MainScreenContract.Model model;
-
+    public Calendar currentDateUser;
     HashMap<String, Integer> produccionData = new HashMap<String, Integer>();
     HashMap<String, Integer> polinizacionData = new HashMap<String, Integer>();
     HashMap<String, Integer> corteData = new HashMap<String, Integer>();
@@ -91,41 +92,25 @@ public class Presenter implements MainScreenContract.Presenter{
     }
     public String getCurrentDate(){
         Calendar today = Calendar.getInstance();
+        this.currentDateUser = today;
         int year = today.get(Calendar.YEAR);
         int month = today.get(Calendar.MONTH) + 1;
         int day = today.get(Calendar.DAY_OF_MONTH);
 
         prepareParams(year, month, day);
+        //Log.d("now", "getcurrentdate");
 
         return day + " " + monthConvert(month) + " " + year;
 
     }
     public void sendVariableId(String desde, String hasta){
-
-        synchronized (this){
-            view.resetResultProduccion();
-            for(Integer i : produccionData.values()){
-                view.getApi(desde, hasta, i, "produccion");
+        view.loadingData(true);
+        for(String i : initialData.keySet()){
+            for(String j : initialData.get(i).keySet()){
+                view.getApi(desde, hasta, initialData.get(i).get(j), i);
             }
-
-            for(Integer i : polinizacionData.values()){
-                view.getApi(desde, hasta, i, "polinizacion");
-            }
-            for(Integer i : corteData.values()){
-                view.getApi(desde, hasta, i, "corte");
-            }
-            for(Integer i : climaData.values()){
-                view.getApi(desde, hasta, i, "clima");
-            }
-            /*
-            for(String i : initialData.keySet()){
-                for(String j : initialData.get(i).keySet()){
-                    view.getApi(desde, hasta, initialData.get(i).get(j), i);
-                }
-            }
-             */
-            //view.showPrueba();
         }
+        view.loadingData(false);
 
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
@@ -136,6 +121,4 @@ public class Presenter implements MainScreenContract.Presenter{
 
         sendVariableId(desde, hasta);
     }
-
-
 }

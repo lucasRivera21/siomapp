@@ -19,12 +19,22 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
+                android:id="@+id/title_text"
                 android:text="@string/home_title"
+                android:visibility="visible"
                 android:textSize="20sp"
                 android:textColor="@color/red"
                 android:layout_centerInParent="true"
-
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/title_text_loading"
+                android:text="Cargando..."
+                android:textSize="20sp"
+                android:textColor="@color/red"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
                 />
         </RelativeLayout>
 
@@ -44,12 +54,6 @@
                 <include layout="@layout/polinizacion"/>
                 <include layout="@layout/corte"/>
                 <include layout="@layout/clima"/>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/recycler_view"/>
-
 
             </LinearLayout>
 

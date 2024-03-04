@@ -43,36 +43,25 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity implements MainScreenContract.View {
 
     MainScreenContract.Presenter presenter;
-
     TextView textDate;
-
     String dateSelected;
-
-    ArrayList<JSONObject> resultProduccion = new ArrayList<>();
-    JSONObject responseJson;
-
-    HashMap<String, Object> produccionJson;
-
     List<ListElement> elementsProduccion  = new ArrayList<>();
     List<ListElement> elementsPolinizacion  = new ArrayList<>();
     List<ListElement> elementsCorte  = new ArrayList<>();
     List<ListElement> elementsClima  = new ArrayList<>();
+    TextView titleText;
+    TextView titleTextLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initialize();
-
-        //Prueba
-        //showPrueba();
-
-
-
     }
 
     private void initialize(){
+        titleText = findViewById(R.id.title_text);
+        titleTextLoading = findViewById(R.id.title_text_loading);
         presenter = new Presenter(this, new Model());
 
         //Date button text
@@ -81,12 +70,21 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         presenter.initialValues();
 
     }
-
+    public void loadingData(boolean loading){
+        if (!loading) {
+            this.titleText.setVisibility(View.VISIBLE);
+            this.titleTextLoading.setVisibility(View.GONE);
+        } else {
+            this.titleText.setVisibility(View.GONE);
+            this.titleTextLoading.setVisibility(View.VISIBLE);
+        }
+    }
     public void showDate(String date){
         textDate.setText(date);
+        resetArrayElements();
+        resetCategiries();
     }
     public void showDatePicker(View view){
-        resetArrayElements();
 
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -99,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                     this.dateSelected = String.format(Locale.US, "%d %s %02d", selectedDay, presenter.monthConvert(selectedMonth + 1), selectedYear);
                     showDate(this.dateSelected);
                     presenter.prepareParams(selectedYear, selectedMonth + 1, selectedDay);
-
+                    Log.d("Tag", String.valueOf(view1));
 
                 },
                 year, month, day
@@ -107,28 +105,56 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
         datePickerDialog.show();
     }
+    public void resetCategiries(){
+        LinearLayout resetProduccion = findViewById((R.id.produccion_layot));
+        LinearLayout resetPolinizacion = findViewById((R.id.polinizacion_layout));
+        LinearLayout resetCorte = findViewById((R.id.corte_layout));
+        LinearLayout resetClima = findViewById((R.id.clima_layout));
+
+        resetProduccion.setVisibility(View.GONE);
+        resetPolinizacion.setVisibility(View.GONE);
+        resetCorte.setVisibility(View.GONE);
+        resetClima.setVisibility(View.GONE);
+    }
+    public void enableCategories(String categoria){
+        LinearLayout categoriaLayout;
+
+        switch (categoria){
+            case "produccion":
+                categoriaLayout = findViewById(R.id.produccion_layot);
+                break;
+            case "polinizacion":
+                categoriaLayout = findViewById(R.id.polinizacion_layout);
+                break;
+            case "corte":
+                categoriaLayout = findViewById(R.id.corte_layout);
+                break;
+            default:
+                categoriaLayout = findViewById(R.id.clima_layout);
+        }
+
+        categoriaLayout.setVisibility(View.VISIBLE);
+    }
     public void resetArrayElements(){
-        elementsProduccion  = new ArrayList<>();
-        elementsPolinizacion  = new ArrayList<>();
-        elementsCorte  = new ArrayList<>();
-        elementsClima  = new ArrayList<>();
+        elementsProduccion.clear();
+        elementsPolinizacion.clear();
+        elementsCorte.clear();
+        elementsClima.clear();
     }
     public void showElements(String name, int incremento, float valor, String unidad, String categoria){
-        //Toast.makeText(this, String.valueOf(this.resultProduccion), Toast.LENGTH_SHORT).show();
-        //elements = new ArrayList<>();
         if(name.length() > 18) {
             name = name.substring(0, 19) + "...";
         }
 
         ListAdapter listAdapter;
-        //RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        //Log.d("Tag", String.valueOf(listAdapter.getClass()));
+
         RecyclerView recyclerView = null;
         switch (categoria){
             case "produccion":
                 elementsProduccion.add(new ListElement(name, String.valueOf(incremento) + " %", valor + " " + unidad));
                 listAdapter = new ListAdapter(elementsProduccion, this);
                 recyclerView = findViewById(R.id.produccion_view);
+
                 break;
             case "polinizacion":
                 elementsPolinizacion.add(new ListElement(name, String.valueOf(incremento) + " %", valor + " " + unidad));
@@ -149,27 +175,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(listAdapter);
-
-    }
-
-    public void performanceJson(JSONObject jsonObject, String categoria){
-        String variableId = null;
-        try {
-            variableId = jsonObject.getString("variable_id");
-            //this.resultProduccion.add(jsonObject);
-
-        } catch (JSONException e) {
-            Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_LONG).show();
-        }
-        //Toast.makeText(this, variableId, Toast.LENGTH_LONG).show();
-    }
-
-    public void resetResultProduccion(){
-        this.resultProduccion.clear();
-    }
-
-    public void asigElement(String nombre, int incremento, float valor, String unidad){
-
     }
 
     public void getApi(String desde, String hasta, int variable_id, String categoria){
@@ -191,30 +196,9 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
                            JSONObject dataObject = data.getJSONObject(0);
                            float valor = dataObject.getInt("valor");
-                           //asigElement(nombre, incremento, valor, unidad);
                            showElements(nombre, incremento, valor, unidad, categoria);
-
-
+                           enableCategories(categoria);
                        }
-
-                       /*
-                       if(Objects.equals(categoria, "produccion")){
-                           this.resultProduccion.add(jsonObject);
-
-                           //Toast.makeText(MainActivity.this, String.valueOf(resultProduccion), Toast.LENGTH_SHORT).show();
-                       }
-
-
-                       //Toast.makeText(MainActivity.this, String.valueOf(jsonObject.toString()), Toast.LENGTH_SHORT).show();
-
-                       //this.produccionDate.add(jsonObject);
-                       //this.produccionJson.put(categoria, jsonObject);
-
-                       this.responseJson = jsonObject;
-                       performanceJson(jsonObject, categoria);
-
-                        */
-
                    } catch (JSONException e) {
                        throw new RuntimeException(e);
                    }
