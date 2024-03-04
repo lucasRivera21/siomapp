@@ -1,5 +1,6 @@
 package com.example.siomaappinicio;
 
+import android.content.Context;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,11 +19,11 @@ import java.util.Map;
 public class Model implements MainScreenContract.Model{
     MainScreenContract.Presenter presenter;
     JSONObject responseApi;
-    /*
-    public JSONObject getApi(){
+
+    public JSONObject getApi(Context context){
 
         RequestQueue requestQueue;
-        RequestQueue queue = Volley.newRequestQueue(this);
+        RequestQueue queue = Volley.newRequestQueue(context);
         final String URL = "https://api.siomapp.com/4/datos/262/1/2";
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
@@ -62,11 +63,10 @@ public class Model implements MainScreenContract.Model{
                 return params;
             }
         };
-        requestQueue = Volley.newRequestQueue(this);
+        requestQueue = Volley.newRequestQueue(context);
         requestQueue.add(stringRequest);
 
         return null;
     }
 
-     */
 }

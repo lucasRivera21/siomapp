@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 public interface MainScreenContract {
     interface View{
-        void showPrueba();
+        void showElements(String name, int incremento, float valor, String unidad, String categoria);
         void getApi(String desde, String hasta, int variable_id, String categoria);
         void resetResultProduccion();
     }

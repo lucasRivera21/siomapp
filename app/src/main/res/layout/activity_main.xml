@@ -50,6 +50,7 @@
                     android:layout_height="match_parent"
                     android:id="@+id/recycler_view"/>
 
+
             </LinearLayout>
 
         </ScrollView>

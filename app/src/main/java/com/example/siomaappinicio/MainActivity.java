@@ -41,7 +41,7 @@ import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity implements MainScreenContract.View {
-    List<Items> elements;
+
     MainScreenContract.Presenter presenter;
 
     TextView textDate;
@@ -53,6 +53,11 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
     HashMap<String, Object> produccionJson;
 
+    List<ListElement> elementsProduccion  = new ArrayList<>();
+    List<ListElement> elementsPolinizacion  = new ArrayList<>();
+    List<ListElement> elementsCorte  = new ArrayList<>();
+    List<ListElement> elementsClima  = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         initialize();
 
         //Prueba
-        showPrueba();
+        //showPrueba();
 
 
 
@@ -81,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         textDate.setText(date);
     }
     public void showDatePicker(View view){
+        resetArrayElements();
+
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
@@ -100,17 +107,45 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
         datePickerDialog.show();
     }
-
-    public void showPrueba(){
+    public void resetArrayElements(){
+        elementsProduccion  = new ArrayList<>();
+        elementsPolinizacion  = new ArrayList<>();
+        elementsCorte  = new ArrayList<>();
+        elementsClima  = new ArrayList<>();
+    }
+    public void showElements(String name, int incremento, float valor, String unidad, String categoria){
         //Toast.makeText(this, String.valueOf(this.resultProduccion), Toast.LENGTH_SHORT).show();
-        elements = new ArrayList<>();
-        elements.add(new Items("prueba", "M", 5));
-        elements.add(new Items("a", "N", 6));
-        elements.add(new Items("b", "F", 7));
+        //elements = new ArrayList<>();
+        if(name.length() > 18) {
+            name = name.substring(0, 19) + "...";
+        }
 
-        Adapter listAdapter = new Adapter(elements, this);
+        ListAdapter listAdapter;
+        //RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        //Log.d("Tag", String.valueOf(listAdapter.getClass()));
+        RecyclerView recyclerView = null;
+        switch (categoria){
+            case "produccion":
+                elementsProduccion.add(new ListElement(name, String.valueOf(incremento) + " %", valor + " " + unidad));
+                listAdapter = new ListAdapter(elementsProduccion, this);
+                recyclerView = findViewById(R.id.produccion_view);
+                break;
+            case "polinizacion":
+                elementsPolinizacion.add(new ListElement(name, String.valueOf(incremento) + " %", valor + " " + unidad));
+                listAdapter = new ListAdapter(elementsPolinizacion, this);
+                recyclerView = findViewById(R.id.polinizacion_view);
+                break;
+            case "corte":
+                elementsCorte.add(new ListElement(name, String.valueOf(incremento) + " %", valor + " " + unidad));
+                listAdapter = new ListAdapter(elementsCorte, this);
+                recyclerView = findViewById(R.id.corte_view);
+                break;
+            default:
+                elementsClima.add(new ListElement(name, String.valueOf(incremento) + " %", valor + " " + unidad));
+                listAdapter = new ListAdapter(elementsClima, this);
+                recyclerView = findViewById(R.id.clima_view);
+        }
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(listAdapter);
@@ -147,21 +182,22 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                    JSONObject jsonObject = null;
                    try {
                        jsonObject = new JSONObject(response);
-
-
-
-                       String nombre = jsonObject.getString("nombre");
-                       String unidad = jsonObject.getString("unidad");
-                       int incremento = jsonObject.getInt("incremento");
                        JSONArray data = jsonObject.getJSONArray("data");
+
                        if(data.length() != 0){
+                           String nombre = jsonObject.getString("nombre");
+                           String unidad = jsonObject.getString("unidad");
+                           int incremento = jsonObject.getInt("incremento");
+
                            JSONObject dataObject = data.getJSONObject(0);
                            float valor = dataObject.getInt("valor");
-                           asigElement(nombre, incremento, valor, unidad);
+                           //asigElement(nombre, incremento, valor, unidad);
+                           showElements(nombre, incremento, valor, unidad, categoria);
 
 
                        }
 
+                       /*
                        if(Objects.equals(categoria, "produccion")){
                            this.resultProduccion.add(jsonObject);
 
@@ -176,6 +212,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
                        this.responseJson = jsonObject;
                        performanceJson(jsonObject, categoria);
+
+                        */
 
                    } catch (JSONException e) {
                        throw new RuntimeException(e);

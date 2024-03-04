@@ -19,6 +19,7 @@ public class Presenter implements MainScreenContract.Presenter{
     HashMap<String, Integer> polinizacionData = new HashMap<String, Integer>();
     HashMap<String, Integer> corteData = new HashMap<String, Integer>();
     HashMap<String, Integer> climaData = new HashMap<String, Integer>();
+    HashMap<String, HashMap<String, Integer>> initialData = new HashMap<>();
 
     HashMap<String, Object> responseProduccion = new HashMap<String, Object>();
 
@@ -31,24 +32,34 @@ public class Presenter implements MainScreenContract.Presenter{
 
     //metodos
     public void initialValues(){
+        //Produccion
         this.produccionData.put("Toneladas de fruto fresco por hectárea año acumulado", 256);
         this.produccionData.put("Kilogramos / Persona / día", 531);
         this.produccionData.put("Flores", 254);
         this.produccionData.put("Racimos empacados", 264);
         this.produccionData.put("Racimos cortados", 262);
 
+        //Polinizacion
         this.polinizacionData.put("Área polinizada por persona / día", 265);
         this.polinizacionData.put("% Área polinizada / día", 193);
 
+        //Corte
         this.corteData.put("% Racimos dejados",253);
         this.corteData.put("% Área cortada por mes",267);
         this.corteData.put("Área cortada por persona / día",266);
 
+        //Clima
         this.climaData.put("Precipitación", 8);
         this.climaData.put("Grados Día", 343);
         this.climaData.put("Temperatura Máxima", 342);
         this.climaData.put("Humedad Relativa", 2);
         this.climaData.put("Tasa fotosintética", 377);
+
+        //Initial data
+        this.initialData.put("produccion", this.produccionData);
+        this.initialData.put("polinizacion", this.polinizacionData);
+        this.initialData.put("corte", this.corteData);
+        this.initialData.put("clima", this.climaData);
     }
     public String monthConvert(int month){
         switch (month){
@@ -96,6 +107,23 @@ public class Presenter implements MainScreenContract.Presenter{
             for(Integer i : produccionData.values()){
                 view.getApi(desde, hasta, i, "produccion");
             }
+
+            for(Integer i : polinizacionData.values()){
+                view.getApi(desde, hasta, i, "polinizacion");
+            }
+            for(Integer i : corteData.values()){
+                view.getApi(desde, hasta, i, "corte");
+            }
+            for(Integer i : climaData.values()){
+                view.getApi(desde, hasta, i, "clima");
+            }
+            /*
+            for(String i : initialData.keySet()){
+                for(String j : initialData.get(i).keySet()){
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i);
+                }
+            }
+             */
             //view.showPrueba();
         }
 
