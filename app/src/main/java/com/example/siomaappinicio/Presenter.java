@@ -1,5 +1,7 @@
 package com.example.siomaappinicio;
 
+import android.util.Log;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -68,7 +70,7 @@ public class Presenter implements MainScreenContract.Presenter{
         String dateString = String.format(Locale.US, "%d %s %02d", this.currentDateUser.get(Calendar.DAY_OF_MONTH), monthConvert(this.currentDateUser.get(Calendar.MONTH) + 1), this.currentDateUser.get(Calendar.YEAR));
         view.showDate(dateString);
 
-        prepareParams(currentDateUser.get(Calendar.YEAR), currentDateUser.get(Calendar.MONTH), currentDateUser.get(Calendar.DAY_OF_MONTH));
+        prepareParams(currentDateUser.get(Calendar.YEAR), currentDateUser.get(Calendar.MONTH) + 1, currentDateUser.get(Calendar.DAY_OF_MONTH));
     }
     public String monthConvert(int month){
         switch (month){
@@ -117,9 +119,10 @@ public class Presenter implements MainScreenContract.Presenter{
                 view.getApi(desde, hasta, initialData.get(i).get(j), i);
             }
         }
-        view.loadingData(false);
+        //view.loadingData(false);
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
+
         String prepareMonth = monthSelected < 10 ? "0" + monthSelected : String.valueOf(monthSelected);
         String prepareDay = daySelected < 10 ? "0" + daySelected : String.valueOf(daySelected);
         String desde = yearSelected + "-" + prepareMonth + "-" + prepareDay + " 00:00:00";

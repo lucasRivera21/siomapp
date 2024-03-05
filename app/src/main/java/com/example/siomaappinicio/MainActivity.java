@@ -41,6 +41,9 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     List<ListElement> elementsCorte  = new ArrayList<>();
     List<ListElement> elementsClima  = new ArrayList<>();
     TextView titleText;
+    TextView notFoundText;
+    boolean isFound = false;
+    int observador = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +55,13 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     private void initialize(){
         titleText = findViewById(R.id.title_text);
         presenter = new Presenter(this, new Model());
+        notFoundText = findViewById(R.id.not_found);
 
         //Date button text
         textDate = findViewById(R.id.date_button);
-        showDate(presenter.getCurrentDate());
         presenter.initialValues();
+        showDate(presenter.getCurrentDate());
+
 
     }
     public void loadingData(boolean loading){
@@ -108,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         resetPolinizacion.setVisibility(View.GONE);
         resetCorte.setVisibility(View.GONE);
         resetClima.setVisibility(View.GONE);
+
+        this.isFound = false;
+        this.notFoundText.setVisibility(View.GONE);
     }
     public void enableCategories(String categoria){
         LinearLayout categoriaLayout;
@@ -182,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(listAdapter);
+
     }
 
     public void buttonRightClicked(View view){
@@ -189,6 +198,9 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     }
     public void buttonLeftClicked(View view){
         presenter.addDayToDate(-1);
+    }
+    public void resetObservador(){
+        this.observador = 0;
     }
     public void getApi(String desde, String hasta, int variable_id, String categoria){
         RequestQueue requestQueue;
@@ -201,14 +213,25 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                    try {
                        jsonObject = new JSONObject(response);
                        JSONArray data = jsonObject.getJSONArray("data");
+                       observador++;
 
                        if(data.length() != 0){
-                           Log.d("Tag", "find");
+                           this.isFound = true;
+
                            String nombre = jsonObject.getString("nombre");
                            String unidad = jsonObject.getString("unidad");
 
                            showElements(nombre, data, unidad, categoria);
                            enableCategories(categoria);
+                       }
+                       if(this.observador == 15){
+                           resetObservador();
+                           loadingData(false);
+                           if(!isFound){
+                               this.notFoundText.setVisibility(View.VISIBLE);
+                           }else{
+                               this.notFoundText.setVisibility(View.GONE);
+                           }
                        }
                    } catch (JSONException e) {
                        throw new RuntimeException(e);
