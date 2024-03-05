@@ -26,16 +26,6 @@
                 android:textColor="@color/red"
                 android:layout_centerInParent="true"
                 />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/title_text_loading"
-                android:text="Cargando..."
-                android:textSize="20sp"
-                android:textColor="@color/red"
-                android:visibility="gone"
-                android:layout_centerInParent="true"
-                />
         </RelativeLayout>
 
         <ScrollView
@@ -72,7 +62,7 @@
                 android:src="@drawable/left_arrow"
                 android:paddingStart="14dp"
                 android:paddingEnd="10dp"
-
+                android:onClick="buttonLeftClicked"
                 android:contentDescription="@string/left_arrow_description"
                 android:background="@drawable/rounded_button"
 
@@ -95,6 +85,7 @@
                 android:src="@drawable/rigth_arrow"
                 android:contentDescription="@string/right_arrow_description"
                 android:paddingHorizontal="14dp"
+                android:onClick="buttonRightClicked"
                 android:background="@drawable/rounded_button"
                 />
 

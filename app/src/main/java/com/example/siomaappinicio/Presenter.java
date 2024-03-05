@@ -1,29 +1,19 @@
 package com.example.siomaappinicio;
 
-import android.app.DatePickerDialog;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-
-import androidx.annotation.Nullable;
-
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
+
 
 public class Presenter implements MainScreenContract.Presenter{
     MainScreenContract.View view;
     MainScreenContract.Model model;
-    public Calendar currentDateUser;
-    HashMap<String, Integer> produccionData = new HashMap<String, Integer>();
-    HashMap<String, Integer> polinizacionData = new HashMap<String, Integer>();
-    HashMap<String, Integer> corteData = new HashMap<String, Integer>();
-    HashMap<String, Integer> climaData = new HashMap<String, Integer>();
+    private Calendar currentDateUser = Calendar.getInstance();
+    HashMap<String, Integer> produccionData = new HashMap<>();
+    HashMap<String, Integer> polinizacionData = new HashMap<>();
+    HashMap<String, Integer> corteData = new HashMap<>();
+    HashMap<String, Integer> climaData = new HashMap<>();
     HashMap<String, HashMap<String, Integer>> initialData = new HashMap<>();
-
-    HashMap<String, Object> responseProduccion = new HashMap<String, Object>();
-
 
     //constructor
     public Presenter(MainScreenContract.View view, MainScreenContract.Model model){
@@ -32,6 +22,15 @@ public class Presenter implements MainScreenContract.Presenter{
     }
 
     //metodos
+
+    public Calendar getCurrentDateUser() {
+        return currentDateUser;
+    }
+
+    public void setCurrentDateUser(Calendar currentDateUser) {
+        this.currentDateUser = currentDateUser;
+    }
+
     public void initialValues(){
         //Produccion
         this.produccionData.put("Toneladas de fruto fresco por hectárea año acumulado", 256);
@@ -61,6 +60,15 @@ public class Presenter implements MainScreenContract.Presenter{
         this.initialData.put("polinizacion", this.polinizacionData);
         this.initialData.put("corte", this.corteData);
         this.initialData.put("clima", this.climaData);
+    }
+    public void addDayToDate(int day){
+        view.resetArrayElements();
+        this.currentDateUser.add(Calendar.DATE, day);
+
+        String dateString = String.format(Locale.US, "%d %s %02d", this.currentDateUser.get(Calendar.DAY_OF_MONTH), monthConvert(this.currentDateUser.get(Calendar.MONTH) + 1), this.currentDateUser.get(Calendar.YEAR));
+        view.showDate(dateString);
+
+        prepareParams(currentDateUser.get(Calendar.YEAR), currentDateUser.get(Calendar.MONTH), currentDateUser.get(Calendar.DAY_OF_MONTH));
     }
     public String monthConvert(int month){
         switch (month){
@@ -98,7 +106,6 @@ public class Presenter implements MainScreenContract.Presenter{
         int day = today.get(Calendar.DAY_OF_MONTH);
 
         prepareParams(year, month, day);
-        //Log.d("now", "getcurrentdate");
 
         return day + " " + monthConvert(month) + " " + year;
 
@@ -111,7 +118,6 @@ public class Presenter implements MainScreenContract.Presenter{
             }
         }
         view.loadingData(false);
-
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
         String prepareMonth = monthSelected < 10 ? "0" + monthSelected : String.valueOf(monthSelected);
