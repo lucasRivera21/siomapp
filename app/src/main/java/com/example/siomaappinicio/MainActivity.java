@@ -23,13 +23,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 
 public class MainActivity extends AppCompatActivity implements MainScreenContract.View {
 
@@ -45,6 +47,14 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     boolean isFound = false;
     int observador = 0;
 
+    //DataBase
+    DataBase dataBase;
+    Data modelDataBase;
+
+    JsonDataToDb jsonDataForDb;
+
+    ArrayList<JsonDataToDb> listJsonDataForDb = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +63,9 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     }
 
     private void initialize(){
+        //DataBase
+        dataBase = new DataBase(MainActivity.this);
+
         titleText = findViewById(R.id.title_text);
         presenter = new Presenter(this, new Model());
         notFoundText = findViewById(R.id.not_found);
@@ -60,9 +73,26 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         //Date button text
         textDate = findViewById(R.id.date_button);
         presenter.initialValues();
-        showDate(presenter.getCurrentDate());
+
+        //showDate(presenter.getCurrentDate());
+        this.dateSelected = presenter.getCurrentDate();
+        showDate(this.dateSelected);
+
+        /*
+        String dateString = "6 Mar 2024";
+        String result = dataBase.getDataForDate(dateString);
+
+        try {
+            JSONArray jsonResult = new JSONArray(result);
+
+            JSONObject planta = jsonResult.getJSONObject(0);
+            Log.d("Tag", planta + "");
 
 
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+         */
     }
     public void loadingData(boolean loading){
         if (!loading) {
@@ -72,9 +102,11 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         }
     }
     public void showDate(String date){
+        this.dateSelected = date;
         textDate.setText(date);
         resetArrayElements();
         resetCategiries();
+        this.listJsonDataForDb.clear();
     }
     public void showDatePicker(View view){
 
@@ -143,9 +175,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         elementsClima.clear();
     }
     public void showElements(String name, JSONArray arrayValor, String unidad, String categoria){
-        if(name.length() > 18) {
-            name = name.substring(0, 19) + "...";
-        }
         String incremento = "---";
         float firstValor;
 
@@ -158,7 +187,12 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
             } catch (JSONException ignored){}
         } catch (JSONException e) {
             throw new RuntimeException(e);
+        }
+        jsonDataForDb = new JsonDataToDb(name, unidad,categoria, firstValor, incremento);
+        listJsonDataForDb.add(jsonDataForDb);
 
+        if(name.length() > 18) {
+            name = name.substring(0, 19) + "...";
         }
 
         ListAdapter listAdapter;
@@ -216,15 +250,28 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                        observador++;
 
                        if(data.length() != 0){
+
                            this.isFound = true;
 
                            String nombre = jsonObject.getString("nombre");
                            String unidad = jsonObject.getString("unidad");
 
+
                            showElements(nombre, data, unidad, categoria);
                            enableCategories(categoria);
                        }
                        if(this.observador == 15){
+
+                           Data dataToDb = new Data(-1, this.dateSelected, listJsonDataForDb.toString());
+
+                           try {
+                               dataBase.addOne(dataToDb);
+                           } catch (Exception ignored) {
+
+                           }
+                           //String result = dataBase.getDataForDate(this.dateSelected);
+                           //Log.d("Tag", result);
+
                            resetObservador();
                            loadingData(false);
                            if(!isFound){

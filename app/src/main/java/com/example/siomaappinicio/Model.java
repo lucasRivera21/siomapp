@@ -19,7 +19,6 @@ import java.util.Map;
 public class Model implements MainScreenContract.Model{
     MainScreenContract.Presenter presenter;
     JSONObject responseApi;
-
     public JSONObject getApi(Context context){
 
         RequestQueue requestQueue;
