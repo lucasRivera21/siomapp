@@ -66,6 +66,11 @@ public class DataBase extends SQLiteOpenHelper {
 
     }
 
+    public void deleteData(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.delete(JSON_TABLE, null, null);
+    }
+
 
 
 }

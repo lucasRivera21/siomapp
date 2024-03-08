@@ -18,6 +18,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     Data modelDataBase;
 
     JsonDataToDb jsonDataForDb;
-
     ArrayList<JsonDataToDb> listJsonDataForDb = new ArrayList<>();
 
     @Override
@@ -77,22 +77,23 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         //showDate(presenter.getCurrentDate());
         this.dateSelected = presenter.getCurrentDate();
         showDate(this.dateSelected);
-
-        /*
-        String dateString = "6 Mar 2024";
+/*
+        String dateString = "29 Feb 2024";
         String result = dataBase.getDataForDate(dateString);
+
+        Gson gg = new Gson();
 
         try {
             JSONArray jsonResult = new JSONArray(result);
 
             JSONObject planta = jsonResult.getJSONObject(0);
-            Log.d("Tag", planta + "");
+            Log.d("Tag", planta.get("categoria") + "");
 
 
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-         */
+ */
     }
     public void loadingData(boolean loading){
         if (!loading) {
@@ -174,27 +175,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         elementsCorte.clear();
         elementsClima.clear();
     }
-    public void showElements(String name, JSONArray arrayValor, String unidad, String categoria){
-        String incremento = "---";
-        float firstValor;
 
-        try {
-            firstValor = arrayValor.getJSONObject(0).getInt("valor");
-            try {
-                float secondValor = arrayValor.getJSONObject(1).getInt("valor");
-                incremento = ((secondValor - firstValor)/firstValor) * 100 + " %";
-                firstValor = secondValor;
-            } catch (JSONException ignored){}
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        jsonDataForDb = new JsonDataToDb(name, unidad,categoria, firstValor, incremento);
-        listJsonDataForDb.add(jsonDataForDb);
-
-        if(name.length() > 18) {
-            name = name.substring(0, 19) + "...";
-        }
-
+    public void showElements(String name, float firstValor, String unidad, String categoria, String incremento){
         ListAdapter listAdapter;
 
         RecyclerView recyclerView;
@@ -224,7 +206,125 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(listAdapter);
+    }
 
+    public void showElementsOnline(String name, JSONArray arrayValor, String unidad, String categoria){
+        String incremento = "---";
+        float firstValor;
+
+        try {
+            firstValor = arrayValor.getJSONObject(0).getInt("valor");
+            try {
+                float secondValor = arrayValor.getJSONObject(1).getInt("valor");
+                incremento = ((secondValor - firstValor)/firstValor) * 100 + " %";
+                firstValor = secondValor;
+            } catch (JSONException ignored){}
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        jsonDataForDb = new JsonDataToDb(name, unidad, categoria, firstValor, incremento);
+        listJsonDataForDb.add(jsonDataForDb);
+
+        if(name.length() > 18) {
+            name = name.substring(0, 19) + "...";
+        }
+
+        showElements(name, firstValor, unidad, categoria, incremento);
+/*
+        ListAdapter listAdapter;
+
+        RecyclerView recyclerView;
+        switch (categoria){
+            case "produccion":
+                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsProduccion, this);
+                recyclerView = findViewById(R.id.produccion_view);
+
+                break;
+            case "polinizacion":
+                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsPolinizacion, this);
+                recyclerView = findViewById(R.id.polinizacion_view);
+                break;
+            case "corte":
+                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsCorte, this);
+                recyclerView = findViewById(R.id.corte_view);
+                break;
+            default:
+                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsClima, this);
+                recyclerView = findViewById(R.id.clima_view);
+        }
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(listAdapter);
+ */
+
+    }
+
+    public void showElementsOffline(String name, float firstValor, String unidad, String categoria, String incremento){
+
+        if(name.length() > 18) {
+            name = name.substring(0, 19) + "...";
+        }
+        showElements(name, firstValor, unidad, categoria, incremento);
+
+        /*
+
+        ListAdapter listAdapter;
+        RecyclerView recyclerView;
+
+        //Toast.makeText(this, categoria, Toast.LENGTH_LONG).show();
+
+        switch (categoria){
+            case "produccion":
+                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsProduccion, this);
+                recyclerView = findViewById(R.id.produccion_view);
+
+                break;
+            case "polinizacion":
+                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsPolinizacion, this);
+                recyclerView = findViewById(R.id.polinizacion_view);
+                break;
+            case "corte":
+                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsCorte, this);
+                recyclerView = findViewById(R.id.corte_view);
+                break;
+            default:
+                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                listAdapter = new ListAdapter(elementsClima, this);
+                recyclerView = findViewById(R.id.clima_view);
+        }
+        Toast.makeText(this, elementsPolinizacion.get(0).getName()+"", Toast.LENGTH_LONG).show();
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(listAdapter);
+         */
+
+        //Log.d("Tag", "name: "+name+ ", firstValor: " +firstValor+ ", unidad: "+unidad+ ", categoria: "+categoria+", incremento: " +incremento);
+    }
+
+    public void convertJson(String result){
+        JSONArray jsonResult = null;
+        try {
+            jsonResult = new JSONArray(result);
+            JSONObject element;
+            String categoria;
+            for(int i = 0; i < jsonResult.length(); i++){
+                element = jsonResult.getJSONObject(i);
+                categoria = element.getString("categoria");
+                showElementsOffline(element.getString("name"), element.getInt("firstValor"), element.getString("unidad"), categoria, element.getString("incremento"));
+                enableCategories(categoria);
+            }
+            //Log.d("Tag", planta.get("categoria") + "");
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void buttonRightClicked(View view){
@@ -250,25 +350,22 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                        observador++;
 
                        if(data.length() != 0){
-
                            this.isFound = true;
 
                            String nombre = jsonObject.getString("nombre");
                            String unidad = jsonObject.getString("unidad");
 
-
-                           showElements(nombre, data, unidad, categoria);
+                           showElementsOnline(nombre, data, unidad, categoria);
                            enableCategories(categoria);
                        }
                        if(this.observador == 15){
-
-                           Data dataToDb = new Data(-1, this.dateSelected, listJsonDataForDb.toString());
-
+                           //Add to data base
+                           Gson gson = new Gson();
+                           String coodinatesJSON = gson.toJson(listJsonDataForDb);
+                           Data dataToDb = new Data(-1, this.dateSelected, coodinatesJSON);
                            try {
                                dataBase.addOne(dataToDb);
-                           } catch (Exception ignored) {
-
-                           }
+                           } catch (Exception ignored) {}
                            //String result = dataBase.getDataForDate(this.dateSelected);
                            //Log.d("Tag", result);
 
@@ -281,9 +378,30 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            }
                        }
                    } catch (JSONException e) {
-                       throw new RuntimeException(e);
+                       Toast.makeText(this, "Error error error", Toast.LENGTH_LONG).show();
                    }
-               }, error -> Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_LONG).show()){
+               }, error -> {
+            observador++;
+
+            if(this.observador == 15){
+                resetObservador();
+                try {
+                    String result = dataBase.getDataForDate(this.dateSelected);
+
+                    try {
+                        convertJson(result);
+                    } catch (Exception ignored) {
+                        Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
+                    }
+                } catch (Exception e) {
+                    //throw new RuntimeException(e);
+                    Toast.makeText(this, "ya hay datos en db", Toast.LENGTH_LONG).show();
+                }
+                loadingData(false);
+                //convertJson(result);
+                //Toast.makeText(this, "Error de conexion", Toast.LENGTH_LONG).show();
+            }
+            }){
                     @Override
                     protected Map<String, String> getParams()throws AuthFailureError{
                         Map<String, String> params = new HashMap<>();
