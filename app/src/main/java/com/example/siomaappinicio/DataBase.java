@@ -35,7 +35,7 @@ public class DataBase extends SQLiteOpenHelper {
 
     }
 
-    public void addOne(Data data){
+    public boolean addOne(Data data){
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues cv = new ContentValues();
 
@@ -43,7 +43,9 @@ public class DataBase extends SQLiteOpenHelper {
         cv.put(COLUM_JSON_LIST, data.getJsonList());
 
 
-        db.insert(JSON_TABLE, null, cv);
+        float insert = db.insert(JSON_TABLE, null, cv);
+
+        return insert != -1;
     }
 
     public String getDataForDate(String date){
@@ -66,9 +68,17 @@ public class DataBase extends SQLiteOpenHelper {
 
     }
 
-    public void deleteData(){
+    public void updateData(Data data, String date){
+        deleteData(date);
+        addOne(data);
+
+    }
+
+    public void deleteData(String date){
+        String selection = COLUM_DATE + " LIKE ?";
+        String[] selectionArgs = {date};
         SQLiteDatabase db = this.getReadableDatabase();
-        db.delete(JSON_TABLE, null, null);
+        db.delete(JSON_TABLE, selection, selectionArgs);
     }
 
 

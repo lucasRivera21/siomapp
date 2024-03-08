@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     TextView notFoundText;
     boolean isFound = false;
     int observador = 0;
+    boolean thereAreData;
 
     //DataBase
     DataBase dataBase;
@@ -77,23 +78,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         //showDate(presenter.getCurrentDate());
         this.dateSelected = presenter.getCurrentDate();
         showDate(this.dateSelected);
-/*
-        String dateString = "29 Feb 2024";
-        String result = dataBase.getDataForDate(dateString);
-
-        Gson gg = new Gson();
-
-        try {
-            JSONArray jsonResult = new JSONArray(result);
-
-            JSONObject planta = jsonResult.getJSONObject(0);
-            Log.d("Tag", planta.get("categoria") + "");
-
-
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
- */
     }
     public void loadingData(boolean loading){
         if (!loading) {
@@ -230,83 +214,14 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         }
 
         showElements(name, firstValor, unidad, categoria, incremento);
-/*
-        ListAdapter listAdapter;
-
-        RecyclerView recyclerView;
-        switch (categoria){
-            case "produccion":
-                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsProduccion, this);
-                recyclerView = findViewById(R.id.produccion_view);
-
-                break;
-            case "polinizacion":
-                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsPolinizacion, this);
-                recyclerView = findViewById(R.id.polinizacion_view);
-                break;
-            case "corte":
-                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsCorte, this);
-                recyclerView = findViewById(R.id.corte_view);
-                break;
-            default:
-                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsClima, this);
-                recyclerView = findViewById(R.id.clima_view);
-        }
-
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(listAdapter);
- */
 
     }
 
     public void showElementsOffline(String name, float firstValor, String unidad, String categoria, String incremento){
-
         if(name.length() > 18) {
             name = name.substring(0, 19) + "...";
         }
         showElements(name, firstValor, unidad, categoria, incremento);
-
-        /*
-
-        ListAdapter listAdapter;
-        RecyclerView recyclerView;
-
-        //Toast.makeText(this, categoria, Toast.LENGTH_LONG).show();
-
-        switch (categoria){
-            case "produccion":
-                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsProduccion, this);
-                recyclerView = findViewById(R.id.produccion_view);
-
-                break;
-            case "polinizacion":
-                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsPolinizacion, this);
-                recyclerView = findViewById(R.id.polinizacion_view);
-                break;
-            case "corte":
-                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsCorte, this);
-                recyclerView = findViewById(R.id.corte_view);
-                break;
-            default:
-                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                listAdapter = new ListAdapter(elementsClima, this);
-                recyclerView = findViewById(R.id.clima_view);
-        }
-        Toast.makeText(this, elementsPolinizacion.get(0).getName()+"", Toast.LENGTH_LONG).show();
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(listAdapter);
-         */
-
-        //Log.d("Tag", "name: "+name+ ", firstValor: " +firstValor+ ", unidad: "+unidad+ ", categoria: "+categoria+", incremento: " +incremento);
     }
 
     public void convertJson(String result){
@@ -321,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                 showElementsOffline(element.getString("name"), element.getInt("firstValor"), element.getString("unidad"), categoria, element.getString("incremento"));
                 enableCategories(categoria);
             }
-            //Log.d("Tag", planta.get("categoria") + "");
+
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -364,10 +279,12 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            String coodinatesJSON = gson.toJson(listJsonDataForDb);
                            Data dataToDb = new Data(-1, this.dateSelected, coodinatesJSON);
                            try {
-                               dataBase.addOne(dataToDb);
-                           } catch (Exception ignored) {}
-                           //String result = dataBase.getDataForDate(this.dateSelected);
-                           //Log.d("Tag", result);
+                                this.thereAreData = dataBase.addOne(dataToDb);
+                                if(!this.thereAreData){
+                                    dataBase.updateData(dataToDb, this.dateSelected);
+                                }
+                           } catch (Exception ignored) {
+                           }
 
                            resetObservador();
                            loadingData(false);
@@ -378,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            }
                        }
                    } catch (JSONException e) {
-                       Toast.makeText(this, "Error error error", Toast.LENGTH_LONG).show();
+                       Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
                    }
                }, error -> {
             observador++;
@@ -393,13 +310,9 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                     } catch (Exception ignored) {
                         Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
                     }
-                } catch (Exception e) {
-                    //throw new RuntimeException(e);
-                    Toast.makeText(this, "ya hay datos en db", Toast.LENGTH_LONG).show();
-                }
+                } catch (Exception ignored) {}
                 loadingData(false);
-                //convertJson(result);
-                //Toast.makeText(this, "Error de conexion", Toast.LENGTH_LONG).show();
+
             }
             }){
                     @Override
