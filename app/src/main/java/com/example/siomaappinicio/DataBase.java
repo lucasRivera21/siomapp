@@ -80,7 +80,11 @@ public class DataBase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         db.delete(JSON_TABLE, selection, selectionArgs);
     }
-
-
-
+    /*
+    public void deleteAll(){
+        String bla = "DROP TABLE SIOMA_TABLE";
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.delete(JSON_TABLE, null, null);
+    }
+     */
 }

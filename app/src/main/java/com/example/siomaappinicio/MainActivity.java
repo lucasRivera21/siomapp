@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
     JsonDataToDb jsonDataForDb;
     ArrayList<JsonDataToDb> listJsonDataForDb = new ArrayList<>();
+    String resultDataGet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +77,16 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         textDate = findViewById(R.id.date_button);
         presenter.initialValues();
 
-        //showDate(presenter.getCurrentDate());
-        this.dateSelected = presenter.getCurrentDate();
-        showDate(this.dateSelected);
+        showDate(presenter.getCurrentDate());
+        //this.dateSelected = presenter.getCurrentDate();
+        //showDate(this.dateSelected);
+    }
+    public String getDateSelected() {
+        Log.d("Tag", dateSelected);
+        return dateSelected;
+    }
+    public void setDateSelected(String dateSelected) {
+        this.dateSelected = dateSelected;
     }
     public void loadingData(boolean loading){
         if (!loading) {
@@ -105,15 +114,15 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
                 (view1, selectedYear, selectedMonth, selectedDay) -> {
-                    this.dateSelected = String.format(Locale.US, "%d %s %02d", selectedDay, presenter.monthConvert(selectedMonth + 1), selectedYear);
-                    showDate(this.dateSelected);
-                    presenter.prepareParams(selectedYear, selectedMonth + 1, selectedDay);
-
                     newCalendar.set(Calendar.DAY_OF_MONTH, selectedDay);
                     newCalendar.set(Calendar.MONTH, selectedMonth);
                     newCalendar.set(Calendar.YEAR, selectedYear);
 
                     presenter.setCurrentDateUser(newCalendar);
+
+                    this.dateSelected = String.format(Locale.US, "%d %s %02d", selectedDay, presenter.monthConvert(selectedMonth + 1), selectedYear);
+                    showDate(this.dateSelected);
+                    presenter.prepareParams(selectedYear, selectedMonth + 1, selectedDay);
                 },
                 year, month, day
         );
@@ -195,12 +204,18 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     public void showElementsOnline(String name, JSONArray arrayValor, String unidad, String categoria){
         String incremento = "---";
         float firstValor;
+        float formula;
+
+        double aux;
 
         try {
-            firstValor = arrayValor.getJSONObject(0).getInt("valor");
+            aux = arrayValor.getJSONObject(0).getDouble("valor");
+            firstValor = (float) aux;
             try {
-                float secondValor = arrayValor.getJSONObject(1).getInt("valor");
-                incremento = ((secondValor - firstValor)/firstValor) * 100 + " %";
+                aux = arrayValor.getJSONObject(1).getDouble("valor");
+                float secondValor = (float) aux;
+                formula = ((secondValor - firstValor)/firstValor) * 100;
+                incremento = Math.round(formula) + " %";
                 firstValor = secondValor;
             } catch (JSONException ignored){}
         } catch (JSONException e) {
@@ -209,8 +224,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         jsonDataForDb = new JsonDataToDb(name, unidad, categoria, firstValor, incremento);
         listJsonDataForDb.add(jsonDataForDb);
 
-        if(name.length() > 18) {
-            name = name.substring(0, 19) + "...";
+        if(name.length() > 15) {
+            name = name.substring(0, 16) + "...";
         }
 
         showElements(name, firstValor, unidad, categoria, incremento);
@@ -218,28 +233,40 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     }
 
     public void showElementsOffline(String name, float firstValor, String unidad, String categoria, String incremento){
-        if(name.length() > 18) {
-            name = name.substring(0, 19) + "...";
+        if(name.length() > 15) {
+            name = name.substring(0, 16) + "...";
         }
+        Log.d("Tag", "name " + name);
         showElements(name, firstValor, unidad, categoria, incremento);
     }
 
     public void convertJson(String result){
         JSONArray jsonResult = null;
+        Log.d("Tag", result);
         try {
             jsonResult = new JSONArray(result);
             JSONObject element;
             String categoria;
+
             for(int i = 0; i < jsonResult.length(); i++){
                 element = jsonResult.getJSONObject(i);
                 categoria = element.getString("categoria");
                 showElementsOffline(element.getString("name"), element.getInt("firstValor"), element.getString("unidad"), categoria, element.getString("incremento"));
                 enableCategories(categoria);
             }
-
         } catch (JSONException e) {
-            throw new RuntimeException(e);
+            Toast.makeText(this, "Error al conectarse", Toast.LENGTH_LONG).show();
         }
+    }
+    public String getDataOffline(){
+        String result = "";
+
+        try {
+            result = dataBase.getDataForDate(this.dateSelected);
+
+        }catch (Exception ignored){}
+
+        return result;
     }
 
     public void buttonRightClicked(View view){
@@ -302,17 +329,13 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
             if(this.observador == 15){
                 resetObservador();
+                String result = getDataOffline();
                 try {
-                    String result = dataBase.getDataForDate(this.dateSelected);
-
-                    try {
-                        convertJson(result);
-                    } catch (Exception ignored) {
-                        Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
-                    }
-                } catch (Exception ignored) {}
+                    convertJson(result);
+                } catch (Exception ignored) {
+                    Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
+                }
                 loadingData(false);
-
             }
             }){
                     @Override
@@ -339,7 +362,17 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                     }
                };
                requestQueue = Volley.newRequestQueue(this);
+
+               String tag = "request";
+               stringRequest.setTag(tag);
+
                requestQueue.add(stringRequest);
+               if(presenter.isAbort()){
+                   requestQueue.cancelAll(tag);
+                   Log.d("Tag", "se cancelo la tarea del observador numero " + observador);
+               }else{
+                   Log.d("Tag", "observador: " + observador);
+               }
     }
 
 

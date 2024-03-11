@@ -16,6 +16,10 @@ public class Presenter implements MainScreenContract.Presenter{
     HashMap<String, Integer> corteData = new HashMap<>();
     HashMap<String, Integer> climaData = new HashMap<>();
     HashMap<String, HashMap<String, Integer>> initialData = new HashMap<>();
+    DataBase dataBase;
+    boolean enable = true;
+    Calendar beforeDay;
+    boolean abort;
 
     //constructor
     public Presenter(MainScreenContract.View view, MainScreenContract.Model model){
@@ -24,6 +28,22 @@ public class Presenter implements MainScreenContract.Presenter{
     }
 
     //metodos
+
+    public boolean isAbort() {
+        return abort;
+    }
+
+    public void setAbort(boolean abort) {
+        this.abort = abort;
+    }
+
+    public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
 
     public Calendar getCurrentDateUser() {
         return currentDateUser;
@@ -65,7 +85,18 @@ public class Presenter implements MainScreenContract.Presenter{
     }
     public void addDayToDate(int day){
         view.resetArrayElements();
+
+        //Calendar currentDate = this.currentDateUser;
+        //Log.d("hi", "current date 1 "+currentDate);
+
+        //currentDate.add(Calendar.DATE, day);
+        //Log.d("hi", "current date 2"+currentDate);
+        Log.d("hi", "current date 1 "+this.currentDateUser);
+
         this.currentDateUser.add(Calendar.DATE, day);
+        Log.d("hi", "current date 2 "+this.currentDateUser);
+
+
 
         String dateString = String.format(Locale.US, "%d %s %02d", this.currentDateUser.get(Calendar.DAY_OF_MONTH), monthConvert(this.currentDateUser.get(Calendar.MONTH) + 1), this.currentDateUser.get(Calendar.YEAR));
         view.showDate(dateString);
@@ -107,27 +138,74 @@ public class Presenter implements MainScreenContract.Presenter{
         int month = today.get(Calendar.MONTH) + 1;
         int day = today.get(Calendar.DAY_OF_MONTH);
 
+        String date = day + " " + monthConvert(month) + " " + year;
+
+        view.setDateSelected(date);
+
         prepareParams(year, month, day);
 
-        return day + " " + monthConvert(month) + " " + year;
+        return date;
 
     }
     public void sendVariableId(String desde, String hasta){
+
         view.loadingData(true);
+        String result = view.getDataOffline();
+
+        Log.d("Tag", "abort: "+ abort);
+
+        this.abort = false;
+
         for(String i : initialData.keySet()){
             for(String j : initialData.get(i).keySet()){
                 view.getApi(desde, hasta, initialData.get(i).get(j), i);
             }
         }
-        //view.loadingData(false);
+
+
+        /*
+        if(result.isEmpty()){
+            //there aren't data in db
+            for(String i : initialData.keySet()){
+                for(String j : initialData.get(i).keySet()){
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i);
+                }
+            }
+        }else{
+            //view.convertJson(result);
+            //there are data in db
+            for(String i : initialData.keySet()){
+                for(String j : initialData.get(i).keySet()){
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i);
+                }
+            }
+        }
+         */
+
+
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
+        //Log.d("hi", "Current date: "+currentDateUser);
+        Calendar beforeDay = Calendar.getInstance();
+        beforeDay.set(this.currentDateUser.get(Calendar.YEAR), this.currentDateUser.get(Calendar.MONTH), this.currentDateUser.get(Calendar.DATE));
+        //Calendar beforeDay = this.currentDateUser;
+        beforeDay.add(Calendar.DATE, -1);
+
+        int montBefore = beforeDay.get(Calendar.MONTH) + 1;
+        String prepareMonthBefore = montBefore < 10 ? "0" + montBefore : montBefore+"";
+        String prepareDayBefore = beforeDay.get(Calendar.DAY_OF_MONTH) < 10 ? "0" + beforeDay.get(Calendar.DAY_OF_MONTH) : beforeDay.get(Calendar.DAY_OF_MONTH)+"";
+
 
         String prepareMonth = monthSelected < 10 ? "0" + monthSelected : String.valueOf(monthSelected);
         String prepareDay = daySelected < 10 ? "0" + daySelected : String.valueOf(daySelected);
-        String desde = yearSelected + "-" + prepareMonth + "-" + prepareDay + " 00:00:00";
+
+        String desde = beforeDay.get(Calendar.YEAR) + "-" + prepareMonthBefore + "-" + prepareDayBefore + " 00:00:00";
         String hasta = yearSelected + "-" + prepareMonth + "-" + prepareDay + " 23:59:59";
 
+        this.abort = true;
+
         sendVariableId(desde, hasta);
+
+
     }
 }
