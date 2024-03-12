@@ -74,7 +74,7 @@
                 android:onClick="buttonLeftClicked"
                 android:contentDescription="@string/left_arrow_description"
                 android:background="@drawable/rounded_button"
-
+                android:id="@+id/button_left"
                 />
             <Button
                 android:id="@+id/date_button"
@@ -96,6 +96,7 @@
                 android:paddingHorizontal="14dp"
                 android:onClick="buttonRightClicked"
                 android:background="@drawable/rounded_button"
+                android:id="@+id/button_right"
                 />
 
         </RelativeLayout>

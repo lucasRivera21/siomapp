@@ -85,6 +85,7 @@ public class Presenter implements MainScreenContract.Presenter{
     }
     public void addDayToDate(int day){
         view.resetArrayElements();
+        view.resetArrayElementsOffline();
 
         //Calendar currentDate = this.currentDateUser;
         //Log.d("hi", "current date 1 "+currentDate);
@@ -152,49 +153,46 @@ public class Presenter implements MainScreenContract.Presenter{
         view.loadingData(true);
         String result = view.getDataOffline();
 
-        Log.d("Tag", "abort: "+ abort);
+        //Log.d("Tag", "abort: "+ abort);
 
-        this.abort = false;
-
+        /*
         for(String i : initialData.keySet()){
             for(String j : initialData.get(i).keySet()){
                 view.getApi(desde, hasta, initialData.get(i).get(j), i);
             }
         }
-
-
-        /*
-        if(result.isEmpty()){
-            //there aren't data in db
-            for(String i : initialData.keySet()){
-                for(String j : initialData.get(i).keySet()){
-                    view.getApi(desde, hasta, initialData.get(i).get(j), i);
-                }
-            }
-        }else{
-            //view.convertJson(result);
-            //there are data in db
-            for(String i : initialData.keySet()){
-                for(String j : initialData.get(i).keySet()){
-                    view.getApi(desde, hasta, initialData.get(i).get(j), i);
-                }
-            }
-        }
          */
 
 
+        if(!result.isEmpty()){
+            //there are data in data base
+            view.convertJson(result);
+            //Log.d("Tag", "no esta vacio la base de datos " + result);
+            for(String i : initialData.keySet()){
+                for(String j : initialData.get(i).keySet()){
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i, false);
+                }
+            }
+        }else{
+            for(String i : initialData.keySet()){
+                for(String j : initialData.get(i).keySet()){
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i, true);
+                }
+            }
+        }
+        //view.resetArrayElements();
+        //this.abort = false;
+
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
-        //Log.d("hi", "Current date: "+currentDateUser);
         Calendar beforeDay = Calendar.getInstance();
         beforeDay.set(this.currentDateUser.get(Calendar.YEAR), this.currentDateUser.get(Calendar.MONTH), this.currentDateUser.get(Calendar.DATE));
-        //Calendar beforeDay = this.currentDateUser;
+
         beforeDay.add(Calendar.DATE, -1);
 
         int montBefore = beforeDay.get(Calendar.MONTH) + 1;
         String prepareMonthBefore = montBefore < 10 ? "0" + montBefore : montBefore+"";
         String prepareDayBefore = beforeDay.get(Calendar.DAY_OF_MONTH) < 10 ? "0" + beforeDay.get(Calendar.DAY_OF_MONTH) : beforeDay.get(Calendar.DAY_OF_MONTH)+"";
-
 
         String prepareMonth = monthSelected < 10 ? "0" + monthSelected : String.valueOf(monthSelected);
         String prepareDay = daySelected < 10 ? "0" + daySelected : String.valueOf(daySelected);
@@ -202,10 +200,6 @@ public class Presenter implements MainScreenContract.Presenter{
         String desde = beforeDay.get(Calendar.YEAR) + "-" + prepareMonthBefore + "-" + prepareDayBefore + " 00:00:00";
         String hasta = yearSelected + "-" + prepareMonth + "-" + prepareDay + " 23:59:59";
 
-        this.abort = true;
-
         sendVariableId(desde, hasta);
-
-
     }
 }

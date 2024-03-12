@@ -5,7 +5,7 @@ import java.util.Calendar;
 
 public interface MainScreenContract {
     interface View{
-        void getApi(String desde, String hasta, int variable_id, String categoria);
+        void getApi(String desde, String hasta, int variable_id, String categoria, boolean showNow);
         void loadingData(boolean loading);
         void resetArrayElements();
         void showDate(String date);
@@ -13,6 +13,7 @@ public interface MainScreenContract {
         void setDateSelected(String dateSelected);
         void convertJson(String result);
         String getDataOffline();
+        void resetArrayElementsOffline();
     }
     interface Presenter{
         void setCurrentDateUser(Calendar currentDateUser);
