@@ -2,6 +2,9 @@ package com.example.siomaappinicio;
 
 import android.util.Log;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -20,6 +23,7 @@ public class Presenter implements MainScreenContract.Presenter{
     boolean enable = true;
     Calendar beforeDay;
     boolean abort;
+    RequestQueue requestQueue;
 
     //constructor
     public Presenter(MainScreenContract.View view, MainScreenContract.Model model){
@@ -92,12 +96,8 @@ public class Presenter implements MainScreenContract.Presenter{
 
         //currentDate.add(Calendar.DATE, day);
         //Log.d("hi", "current date 2"+currentDate);
-        Log.d("hi", "current date 1 "+this.currentDateUser);
 
         this.currentDateUser.add(Calendar.DATE, day);
-        Log.d("hi", "current date 2 "+this.currentDateUser);
-
-
 
         String dateString = String.format(Locale.US, "%d %s %02d", this.currentDateUser.get(Calendar.DAY_OF_MONTH), monthConvert(this.currentDateUser.get(Calendar.MONTH) + 1), this.currentDateUser.get(Calendar.YEAR));
         view.showDate(dateString);
@@ -150,8 +150,21 @@ public class Presenter implements MainScreenContract.Presenter{
     }
     public void sendVariableId(String desde, String hasta){
 
+        String tag = view.getDateSelected();
+        /*
+        if(view.getObservador() < 15 && view.getObservador() > 0){
+            //cancel
+            this.abort = true;
+            //Log.d("Tag", "cancelar");
+        }else {
+            view.setObservador(0);
+        }
+         */
+        //requestQueue = Volley.newRequestQueue(MainActivity.this);
+
         view.loadingData(true);
         String result = view.getDataOffline();
+        //Log.d("Tag", result);
 
         //Log.d("Tag", "abort: "+ abort);
 
@@ -162,29 +175,34 @@ public class Presenter implements MainScreenContract.Presenter{
             }
         }
          */
-
+        String dateSelected = view.getDateSelected();
+        Log.d("Tag", result);
 
         if(!result.isEmpty()){
             //there are data in data base
             view.convertJson(result);
-            //Log.d("Tag", "no esta vacio la base de datos " + result);
+            Log.d("Tag", initialData.keySet()+"");
             for(String i : initialData.keySet()){
                 for(String j : initialData.get(i).keySet()){
-                    view.getApi(desde, hasta, initialData.get(i).get(j), i, false);
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i, false, dateSelected, this.requestQueue);
                 }
             }
         }else{
             for(String i : initialData.keySet()){
                 for(String j : initialData.get(i).keySet()){
-                    view.getApi(desde, hasta, initialData.get(i).get(j), i, true);
+                    view.getApi(desde, hasta, initialData.get(i).get(j), i, true, dateSelected, this.requestQueue);
                 }
             }
         }
+
         //view.resetArrayElements();
         //this.abort = false;
 
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
+        view.resetCategiries();
+        view.resetArrayElements();
+        view.resetArrayElementsOffline();
         Calendar beforeDay = Calendar.getInstance();
         beforeDay.set(this.currentDateUser.get(Calendar.YEAR), this.currentDateUser.get(Calendar.MONTH), this.currentDateUser.get(Calendar.DATE));
 

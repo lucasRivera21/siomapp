@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements MainScreenContract.View {
 
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     ImageButton buttonRight;
     ImageButton buttonleft;
     public String dateSelected;
+    public String dateSelectedBefore;
     List<ListElement> elementsProduccion  = new ArrayList<>();
     List<ListElement> elementsPolinizacion  = new ArrayList<>();
     List<ListElement> elementsCorte  = new ArrayList<>();
@@ -88,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         textDate = findViewById(R.id.date_button);
         presenter.initialValues();
 
+        this.dateSelectedBefore = null;
+
         showDate(presenter.getCurrentDate());
         //this.dateSelected = presenter.getCurrentDate();
         //showDate(this.dateSelected);
@@ -99,6 +103,23 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     public void setDateSelected(String dateSelected) {
         this.dateSelected = dateSelected;
     }
+
+    public String getDateSelectedBefore() {
+        return dateSelectedBefore;
+    }
+
+    public void setDateSelectedBefore(String dateSelectedBefore) {
+        this.dateSelectedBefore = dateSelectedBefore;
+    }
+
+    public int getObservador() {
+        return observador;
+    }
+
+    public void setObservador(int observador) {
+        this.observador = observador;
+    }
+
     public void loadingData(boolean loading){
         if (!loading) {
             this.titleText.setText("Inicio");
@@ -107,11 +128,12 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         }
     }
     public void showDate(String date){
+        this.dateSelectedBefore = this.dateSelected;
         this.dateSelected = date;
         textDate.setText(date);
-        resetArrayElements();
-        resetArrayElementsOffline();
-        resetCategiries();
+        //resetArrayElements();
+        //resetArrayElementsOffline();
+        //resetCategiries();
         this.listJsonDataForDb.clear();
     }
     public void showDatePicker(View view){
@@ -131,6 +153,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                     newCalendar.set(Calendar.YEAR, selectedYear);
 
                     presenter.setCurrentDateUser(newCalendar);
+
+                    this.dateSelectedBefore = this.dateSelected;
 
                     this.dateSelected = String.format(Locale.US, "%d %s %02d", selectedDay, presenter.monthConvert(selectedMonth + 1), selectedYear);
                     showDate(this.dateSelected);
@@ -171,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
             default:
                 categoriaLayout = findViewById(R.id.clima_layout);
         }
-
         categoriaLayout.setVisibility(View.VISIBLE);
     }
     public void resetArrayElements(){
@@ -181,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         elementsClima.clear();
     }
     public void resetArrayElementsOffline(){
-        Log.d("Tag", "es momento de reset");
+        //Log.d("Tag", "es momento de reset");
         elementsProduccionOffline.clear();
         elementsPolinizacionOffline.clear();
         elementsCorteOffline.clear();
@@ -224,7 +247,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     }
     public void showElementsToUserOffline(String name, float firstValor, String unidad, String categoria, String incremento){
         ListAdapter listAdapter;
-        //Log.d("Tag", elementsProduccion+"");
 
         RecyclerView recyclerView;
         switch (categoria){
@@ -233,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                 //Log.d("Tag", elementsProduccion.get(0).name);
                 listAdapter = new ListAdapter(elementsProduccionOffline, this);
                 recyclerView = findViewById(R.id.produccion_view);
-
                 break;
             case "polinizacion":
                 elementsPolinizacionOffline.add(new ListElement(name, incremento, firstValor + " " + unidad));
@@ -352,7 +373,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         if(name.length() > 15) {
             name = name.substring(0, 16) + "...";
         }
-        //Log.d("Tag", "name " + name);
         showElementsToUserOffline(name, firstValor, unidad, categoria, incremento);
     }
 
@@ -373,6 +393,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         } catch (JSONException e) {
             Toast.makeText(this, "Error al conectarse", Toast.LENGTH_LONG).show();
         }
+        //loadingData(false);
     }
     public String getDataOffline(){
         String result = "";
@@ -410,10 +431,11 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     public void resetObservador(){
         this.observador = 0;
     }
-    public void getApi(String desde, String hasta, int variable_id, String categoria, boolean showNow){
+
+    int aux;
+    public void getApi(String desde, String hasta, int variable_id, String categoria, boolean showNow, String currentDate, RequestQueue requestQueue){
 
         //global
-        RequestQueue requestQueue;
         RequestQueue queue = Volley.newRequestQueue(this);
         final String URL = "https://api.siomapp.com/4/datos/" + variable_id + "/1/2";
 
@@ -424,7 +446,17 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                        jsonObject = new JSONObject(response);
                        JSONArray data = jsonObject.getJSONArray("data");
                        observador++;
+                       //Log.d("Tag", "current date: " + this.dateSelected);
+                       //Log.d("Tag", "other date: " + currentDate);
+                        /*
+                       if(!Objects.equals(this.dateSelected, currentDate)){
+                           Log.d("Tag", "cancelado en la peticion numero " + observador+" fecha de busqueda "+currentDate+" fecha actual " +this.dateSelected);
+                           return;
+                       }
 
+                         */
+                       //Log.d("Tag", "no se ha cancelado la peticion: "+observador);
+                       //Log.d("Tag", "ejecutando peticion: "+observador);
                        if(data.length() != 0){
                            this.isFound = true;
 
@@ -437,7 +469,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            }
                        }
                        if(this.observador == 15){
-                           Log.d("Tag", "consulta terminada");
+                           //Log.d("Tag", "consulta terminada");
                            //Add to data base
                            Gson gson = new Gson();
                            String coodinatesJSON = gson.toJson(listJsonDataForDb);
@@ -453,7 +485,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            }
 
                            resetObservador();
-
+                           Log.d("Tag", "isFound "+ isFound);
                            if(!isFound){
                                this.notFoundText.setVisibility(View.VISIBLE);
                            }else{
@@ -461,26 +493,31 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            }
 
                            resetArrayElementsOffline();
-                           resetCategiries();
-
                            showElemetsWithDataBaseBefore();
-
                            loadingData(false);
                        }
                    } catch (JSONException e) {
                        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
                    }
                }, error -> {
+           //Log.d("Tag", "error "+Objects.requireNonNull(error.getLocalizedMessage()));
+
             observador++;
 
             if(this.observador == 15){
                 resetObservador();
+                /*
+
                 String result = getDataOffline();
+                Log.d("Tag", result);
                 try {
                     convertJson(result);
                 } catch (Exception ignored) {
                     Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
                 }
+
+                 */
+                Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
                 loadingData(false);
             }
             }){
@@ -490,6 +527,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                         params.put("desde", desde);
                         params.put("hasta", hasta);
                         params.put("tipo_periodo_id", "1");
+                        //Log.d("Tag", "parametros");
                         return params;
                     }
 
@@ -506,20 +544,29 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                     params.put("Authorization", "XZ43HlJrcQRTjJSWGwrquw==");
                     return params;
                     }
+
                };
-               requestQueue = Volley.newRequestQueue(this);
 
                String tag = "request";
                stringRequest.setTag(tag);
 
-               requestQueue.add(stringRequest);
-               if(presenter.isAbort()){
-                   requestQueue.cancelAll(tag);
-                   //resetArrayElements();
-                   //Log.d("Tag", "se cancelo la tarea del observador numero " + observador);
-               }else{
-                   //Log.d("Tag", "observador: " + observador);
+               requestQueue = Volley.newRequestQueue(this);
+
+               aux++;
+               if(!presenter.isAbort()){
+                   requestQueue.add(stringRequest);
                }
+/*
+               if(aux > 6){
+                   //requestQueue.cancelAll(tag);
+                   //resetArrayElements();
+                   Log.d("Tag", "se cancelo la tarea en "+aux);
+               }else{
+
+                   Log.d("Tag", "aux: "+aux);
+               }
+
+ */
     }
 
 
