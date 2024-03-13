@@ -463,10 +463,14 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            String nombre = jsonObject.getString("nombre");
                            String unidad = jsonObject.getString("unidad");
 
-                           showElementsOnline(nombre, data, unidad, categoria, showNow);
-                           if(showNow){
-                               enableCategories(categoria);
+                           if(Objects.equals(currentDate, this.dateSelected)){
+                               showElementsOnline(nombre, data, unidad, categoria, showNow);
+                               if(showNow){
+                                   enableCategories(categoria);
+                               }
                            }
+
+
                        }
                        if(this.observador == 15){
                            //Log.d("Tag", "consulta terminada");
