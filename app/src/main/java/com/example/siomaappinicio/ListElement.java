@@ -4,11 +4,21 @@ public class ListElement {
     public String name;
     public String incremento;
     public String unidad;
+    public int color;
 
-    public ListElement(String name, String incremento, String unidad) {
+    public ListElement(String name, String incremento, String unidad, int color) {
         this.name = name;
         this.incremento = incremento;
         this.unidad = unidad;
+        this.color = color;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 
     public String getName() {

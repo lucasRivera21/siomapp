@@ -5,9 +5,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.DatePickerDialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -26,11 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DecimalFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -62,11 +58,11 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
     //DataBase
     DataBase dataBase;
-    Data modelDataBase;
 
     JsonDataToDb jsonDataForDb;
     ArrayList<JsonDataToDb> listJsonDataForDb = new ArrayList<>();
-    String resultDataGet;
+
+    public String currentDateString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,31 +89,17 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         this.dateSelectedBefore = null;
 
         showDate(presenter.getCurrentDate());
-        //this.dateSelected = presenter.getCurrentDate();
-        //showDate(this.dateSelected);
     }
+
+    public void setCurrentDateString(String currentDateString) {
+        this.currentDateString = currentDateString;
+    }
+
     public String getDateSelected() {
-        //Log.d("Tag", dateSelected);
         return dateSelected;
     }
     public void setDateSelected(String dateSelected) {
         this.dateSelected = dateSelected;
-    }
-
-    public String getDateSelectedBefore() {
-        return dateSelectedBefore;
-    }
-
-    public void setDateSelectedBefore(String dateSelectedBefore) {
-        this.dateSelectedBefore = dateSelectedBefore;
-    }
-
-    public int getObservador() {
-        return observador;
-    }
-
-    public void setObservador(int observador) {
-        this.observador = observador;
     }
 
     public void loadingData(boolean loading){
@@ -131,9 +113,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         this.dateSelectedBefore = this.dateSelected;
         this.dateSelected = date;
         textDate.setText(date);
-        //resetArrayElements();
-        //resetArrayElementsOffline();
-        //resetCategiries();
         this.listJsonDataForDb.clear();
     }
     public void showDatePicker(View view){
@@ -204,38 +183,51 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         elementsClima.clear();
     }
     public void resetArrayElementsOffline(){
-        //Log.d("Tag", "es momento de reset");
         elementsProduccionOffline.clear();
         elementsPolinizacionOffline.clear();
         elementsCorteOffline.clear();
         elementsClimaOffline.clear();
     }
+    public int changeColor(String incremento){
+        if(!Objects.equals(incremento, "---")){
+            String incrementoString = incremento.replaceAll("%","");
+            incrementoString = incrementoString.replaceAll(" ","");
+            int incrementoInt = Integer.parseInt(incrementoString);
 
-    public void showElements(String name, float firstValor, String unidad, String categoria, String incremento){
+
+            if(incrementoInt > 0){
+                return Color.parseColor("#0dbc0d");
+            }else if(incrementoInt < 0){
+                return Color.parseColor("#ff0c0c");
+            }
+        }
+        return Color.GRAY;
+    }
+    public void showElements(String name, float firstValor, String unidad, String categoria, String incremento, float formula){
         ListAdapter listAdapter;
-        //Log.d("Tag", elementsProduccion+"");
+
 
         RecyclerView recyclerView;
         switch (categoria){
             case "produccion":
-                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                //Log.d("Tag", elementsProduccion.get(0).name);
+                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
+
                 listAdapter = new ListAdapter(elementsProduccion, this);
                 recyclerView = findViewById(R.id.produccion_view);
 
                 break;
             case "polinizacion":
-                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsPolinizacion, this);
                 recyclerView = findViewById(R.id.polinizacion_view);
                 break;
             case "corte":
-                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsCorte, this);
                 recyclerView = findViewById(R.id.corte_view);
                 break;
             default:
-                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsClima, this);
                 recyclerView = findViewById(R.id.clima_view);
         }
@@ -243,7 +235,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(listAdapter);
-
     }
     public void showElementsToUserOffline(String name, float firstValor, String unidad, String categoria, String incremento){
         ListAdapter listAdapter;
@@ -251,23 +242,22 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
         RecyclerView recyclerView;
         switch (categoria){
             case "produccion":
-                elementsProduccionOffline.add(new ListElement(name, incremento, firstValor + " " + unidad));
-                //Log.d("Tag", elementsProduccion.get(0).name);
+                elementsProduccionOffline.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsProduccionOffline, this);
                 recyclerView = findViewById(R.id.produccion_view);
                 break;
             case "polinizacion":
-                elementsPolinizacionOffline.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsPolinizacionOffline.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsPolinizacionOffline, this);
                 recyclerView = findViewById(R.id.polinizacion_view);
                 break;
             case "corte":
-                elementsCorteOffline.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsCorteOffline.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsCorteOffline, this);
                 recyclerView = findViewById(R.id.corte_view);
                 break;
             default:
-                elementsClimaOffline.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsClimaOffline.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 listAdapter = new ListAdapter(elementsClimaOffline, this);
                 recyclerView = findViewById(R.id.clima_view);
         }
@@ -278,52 +268,76 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
     }
 
+
     public void showElementsOnline(String name, JSONArray arrayValor, String unidad, String categoria, boolean showNow){
         String incremento = "---";
         float firstValor;
-        float formula;
-
+        float formula = 0;
+        String firstDate;
+        boolean isBreak = false;
         double aux;
 
         try {
             aux = arrayValor.getJSONObject(0).getDouble("valor");
+            firstDate = arrayValor.getJSONObject(0).getString("fecha").substring(0, 10);
             firstValor = (float) aux;
             try {
                 aux = arrayValor.getJSONObject(1).getDouble("valor");
                 float secondValor = (float) aux;
-                formula = ((secondValor - firstValor)/firstValor) * 100;
-                incremento = Math.round(formula) + " %";
-                firstValor = secondValor;
-            } catch (JSONException ignored){}
+
+                if(Objects.equals(this.currentDateString, firstDate)){
+                    if(secondValor != 0){
+                        formula = ((firstValor - secondValor)/ secondValor) * 100;
+                    }
+                }else {
+                    if(firstValor != 0){
+                        formula = ((secondValor - firstValor)/firstValor) * 100;
+                    }
+                    firstValor = secondValor;
+                }
+                if(formula != 0){
+                    incremento = Math.round(formula) + " %";
+                }
+            } catch (JSONException ignored){
+                if(!Objects.equals(currentDateString, firstDate)){
+                    isBreak = true;
+                }
+            }
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        jsonDataForDb = new JsonDataToDb(name, unidad, categoria, firstValor, incremento);
-        listJsonDataForDb.add(jsonDataForDb);
 
-        if(name.length() > 15) {
-            name = name.substring(0, 16) + "...";
-        }
-        if(showNow){
-            showElements(name, firstValor, unidad, categoria, incremento);
-        }else{
-            addElemetsWithDataBaseBefore(name, firstValor, unidad, categoria, incremento);
+        if(!isBreak){
+            this.isFound = true;
+
+            jsonDataForDb = new JsonDataToDb(name, unidad, categoria, firstValor, incremento);
+            listJsonDataForDb.add(jsonDataForDb);
+
+            if(name.length() > 15) {
+                name = name.substring(0, 16) + "...";
+            }
+
+            if(showNow){
+                showElements(name, firstValor, unidad, categoria, incremento, formula);
+            }else{
+                addElemetsWithDataBaseBefore(name, firstValor, unidad, categoria, incremento);
+            }
         }
     }
 
     public void addElemetsWithDataBaseBefore(String name, float firstValor, String unidad, String categoria, String incremento){
         switch (categoria){
             case "produccion":
-                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsProduccion.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 break;
             case "polinizacion":
-                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsPolinizacion.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 break;
             case "corte":
-                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsCorte.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
                 break;
             default:
-                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad));
+                elementsClima.add(new ListElement(name, incremento, firstValor + " " + unidad, changeColor(incremento)));
         }
     }
     public void showElemetsWithDataBaseBefore(){
@@ -378,22 +392,27 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
     public void convertJson(String result){
         JSONArray jsonResult = null;
-        //Log.d("Tag", result);
         try {
             jsonResult = new JSONArray(result);
             JSONObject element;
             String categoria;
 
             for(int i = 0; i < jsonResult.length(); i++){
+                this.isFound = true;
+
                 element = jsonResult.getJSONObject(i);
                 categoria = element.getString("categoria");
                 showElementsOffline(element.getString("name"), element.getInt("firstValor"), element.getString("unidad"), categoria, element.getString("incremento"));
                 enableCategories(categoria);
             }
+            if(!isFound){
+                this.notFoundText.setVisibility(View.VISIBLE);
+            }else{
+                this.notFoundText.setVisibility(View.GONE);
+            }
         } catch (JSONException e) {
             Toast.makeText(this, "Error al conectarse", Toast.LENGTH_LONG).show();
         }
-        //loadingData(false);
     }
     public String getDataOffline(){
         String result = "";
@@ -431,8 +450,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
     public void resetObservador(){
         this.observador = 0;
     }
-
-    int aux;
     public void getApi(String desde, String hasta, int variable_id, String categoria, boolean showNow, String currentDate, RequestQueue requestQueue){
 
         //global
@@ -446,20 +463,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                        jsonObject = new JSONObject(response);
                        JSONArray data = jsonObject.getJSONArray("data");
                        observador++;
-                       //Log.d("Tag", "current date: " + this.dateSelected);
-                       //Log.d("Tag", "other date: " + currentDate);
-                        /*
-                       if(!Objects.equals(this.dateSelected, currentDate)){
-                           Log.d("Tag", "cancelado en la peticion numero " + observador+" fecha de busqueda "+currentDate+" fecha actual " +this.dateSelected);
-                           return;
-                       }
 
-                         */
-                       //Log.d("Tag", "no se ha cancelado la peticion: "+observador);
-                       //Log.d("Tag", "ejecutando peticion: "+observador);
                        if(data.length() != 0){
-                           this.isFound = true;
-
                            String nombre = jsonObject.getString("nombre");
                            String unidad = jsonObject.getString("unidad");
 
@@ -469,12 +474,8 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                                    enableCategories(categoria);
                                }
                            }
-
-
                        }
-                       if(this.observador == 15){
-                           //Log.d("Tag", "consulta terminada");
-                           //Add to data base
+                       if(this.observador == 26){
                            Gson gson = new Gson();
                            String coodinatesJSON = gson.toJson(listJsonDataForDb);
                            Data dataToDb = new Data(-1, this.dateSelected, coodinatesJSON);
@@ -489,7 +490,6 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                            }
 
                            resetObservador();
-                           Log.d("Tag", "isFound "+ isFound);
                            if(!isFound){
                                this.notFoundText.setVisibility(View.VISIBLE);
                            }else{
@@ -498,29 +498,19 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
                            resetArrayElementsOffline();
                            showElemetsWithDataBaseBefore();
+                           this.isFound = false;
                            loadingData(false);
                        }
                    } catch (JSONException e) {
                        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
                    }
                }, error -> {
-           //Log.d("Tag", "error "+Objects.requireNonNull(error.getLocalizedMessage()));
 
             observador++;
 
-            if(this.observador == 15){
+            if(this.observador == 26){
                 resetObservador();
-                /*
 
-                String result = getDataOffline();
-                Log.d("Tag", result);
-                try {
-                    convertJson(result);
-                } catch (Exception ignored) {
-                    Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
-                }
-
-                 */
                 Toast.makeText(this, "Sin conexion a internet", Toast.LENGTH_LONG).show();
                 loadingData(false);
             }
@@ -531,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
                         params.put("desde", desde);
                         params.put("hasta", hasta);
                         params.put("tipo_periodo_id", "1");
-                        //Log.d("Tag", "parametros");
+
                         return params;
                     }
 
@@ -556,21 +546,10 @@ public class MainActivity extends AppCompatActivity implements MainScreenContrac
 
                requestQueue = Volley.newRequestQueue(this);
 
-               aux++;
                if(!presenter.isAbort()){
                    requestQueue.add(stringRequest);
                }
-/*
-               if(aux > 6){
-                   //requestQueue.cancelAll(tag);
-                   //resetArrayElements();
-                   Log.d("Tag", "se cancelo la tarea en "+aux);
-               }else{
 
-                   Log.d("Tag", "aux: "+aux);
-               }
-
- */
     }
 
 

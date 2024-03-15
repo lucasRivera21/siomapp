@@ -1,9 +1,6 @@
 package com.example.siomaappinicio;
 
-import android.util.Log;
-
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -19,9 +16,7 @@ public class Presenter implements MainScreenContract.Presenter{
     HashMap<String, Integer> corteData = new HashMap<>();
     HashMap<String, Integer> climaData = new HashMap<>();
     HashMap<String, HashMap<String, Integer>> initialData = new HashMap<>();
-    DataBase dataBase;
     boolean enable = true;
-    Calendar beforeDay;
     boolean abort;
     RequestQueue requestQueue;
 
@@ -59,27 +54,47 @@ public class Presenter implements MainScreenContract.Presenter{
 
     public void initialValues(){
         //Produccion
-        this.produccionData.put("Toneladas de fruto fresco por hectárea año acumulado", 256);
-        this.produccionData.put("Kilogramos / Persona / día", 531);
-        this.produccionData.put("Flores", 254);
-        this.produccionData.put("Racimos empacados", 264);
-        this.produccionData.put("Racimos cortados", 262);
+        //this.produccionData.put("Toneladas de fruto fresco por hectárea año acumulado", 256);
+        this.produccionData.put("Kilogramos / Persona / día", 531);//MS
+        this.produccionData.put("Flores", 254);//GS
+        this.produccionData.put("Racimos empacados", 264);//GS
+        this.produccionData.put("Racimos cortados", 262);//GS
+        this.produccionData.put("Ajuste", 311);//
+        this.produccionData.put("Recobro", 457);//
+        this.produccionData.put("Toneladas de fruto fresco", 145);//GS
+        this.produccionData.put("Peso promedio de racimo", 104);//
+        this.produccionData.put("Flores / palma / mes", 141);//
 
         //Polinizacion
         this.polinizacionData.put("Área polinizada por persona / día", 265);
-        this.polinizacionData.put("% Área polinizada / día", 193);
+        this.polinizacionData.put("% de área polinizada / día", 193);//S
+        this.polinizacionData.put("% Flores dejadas", 151);//S
+
+        this.polinizacionData.put("Espate", 149);//
+        this.polinizacionData.put("Marcación", 148);//
+        this.polinizacionData.put("Aplicación", 150);//
+        this.polinizacionData.put("Formación", 159);//
+        this.polinizacionData.put("% Machos", 146);//
+        this.polinizacionData.put("Andrógena", 147);//
+        this.polinizacionData.put("Jornada laboral promedio", 337);//
+        this.polinizacionData.put("Hora ingreso promedio", 338);//
+
+        this.polinizacionData.put("% de flores polinizadas", 255);//GS
+        this.polinizacionData.put("Calidad de polinización", 248);//
 
         //Corte
-        this.corteData.put("% Racimos dejados",253);
+        //this.corteData.put("% Racimos dejados",253);
         this.corteData.put("% Área cortada por mes",267);
         this.corteData.put("Área cortada por persona / día",266);
+        this.corteData.put("% Racimos dejados",253);//
+        //this.corteData.put("Edad promedio",192);//
 
         //Clima
-        this.climaData.put("Precipitación", 8);
-        this.climaData.put("Grados Día", 343);
-        this.climaData.put("Temperatura Máxima", 342);
-        this.climaData.put("Humedad Relativa", 2);
-        this.climaData.put("Tasa fotosintética", 377);
+        this.climaData.put("Precipitación", 8);//
+        //this.climaData.put("Grados Día", 343);
+        //this.climaData.put("Temperatura Máxima", 342);
+        //this.climaData.put("Humedad Relativa", 2);
+        //this.climaData.put("Tasa fotosintética", 377);
 
         //Initial data
         this.initialData.put("produccion", this.produccionData);
@@ -90,12 +105,6 @@ public class Presenter implements MainScreenContract.Presenter{
     public void addDayToDate(int day){
         view.resetArrayElements();
         view.resetArrayElementsOffline();
-
-        //Calendar currentDate = this.currentDateUser;
-        //Log.d("hi", "current date 1 "+currentDate);
-
-        //currentDate.add(Calendar.DATE, day);
-        //Log.d("hi", "current date 2"+currentDate);
 
         this.currentDateUser.add(Calendar.DATE, day);
 
@@ -150,38 +159,14 @@ public class Presenter implements MainScreenContract.Presenter{
     }
     public void sendVariableId(String desde, String hasta){
 
-        String tag = view.getDateSelected();
-        /*
-        if(view.getObservador() < 15 && view.getObservador() > 0){
-            //cancel
-            this.abort = true;
-            //Log.d("Tag", "cancelar");
-        }else {
-            view.setObservador(0);
-        }
-         */
-        //requestQueue = Volley.newRequestQueue(MainActivity.this);
-
         view.loadingData(true);
         String result = view.getDataOffline();
-        //Log.d("Tag", result);
-
-        //Log.d("Tag", "abort: "+ abort);
-
-        /*
-        for(String i : initialData.keySet()){
-            for(String j : initialData.get(i).keySet()){
-                view.getApi(desde, hasta, initialData.get(i).get(j), i);
-            }
-        }
-         */
         String dateSelected = view.getDateSelected();
-        Log.d("Tag", result);
 
         if(!result.isEmpty()){
             //there are data in data base
             view.convertJson(result);
-            Log.d("Tag", initialData.keySet()+"");
+
             for(String i : initialData.keySet()){
                 for(String j : initialData.get(i).keySet()){
                     view.getApi(desde, hasta, initialData.get(i).get(j), i, false, dateSelected, this.requestQueue);
@@ -195,8 +180,6 @@ public class Presenter implements MainScreenContract.Presenter{
             }
         }
 
-        //view.resetArrayElements();
-        //this.abort = false;
 
     }
     public void prepareParams(int yearSelected, int monthSelected, int daySelected){
@@ -217,6 +200,8 @@ public class Presenter implements MainScreenContract.Presenter{
 
         String desde = beforeDay.get(Calendar.YEAR) + "-" + prepareMonthBefore + "-" + prepareDayBefore + " 00:00:00";
         String hasta = yearSelected + "-" + prepareMonth + "-" + prepareDay + " 23:59:59";
+
+        view.setCurrentDateString(yearSelected + "-" + prepareMonth + "-" + prepareDay);
 
         sendVariableId(desde, hasta);
     }

@@ -53,6 +53,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         void binData(final ListElement item){
             name.setText(item.getName());
             incremento.setText(item.getIncremento());
+            incremento.setTextColor(item.getColor());
             unidad.setText(item.getUnidad());
         }
     }

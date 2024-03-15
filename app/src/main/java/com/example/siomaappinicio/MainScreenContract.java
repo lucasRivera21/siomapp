@@ -7,19 +7,20 @@ import java.util.Calendar;
 
 public interface MainScreenContract {
     interface View{
-        int getObservador();
-        void setObservador(int observador);
+
+
         void getApi(String desde, String hasta, int variable_id, String categoria, boolean showNow, String currentDate, RequestQueue requestQueue);
         void loadingData(boolean loading);
         void resetArrayElements();
         void showDate(String date);
         String getDateSelected();
         void setDateSelected(String dateSelected);
-        void setDateSelectedBefore(String dateSelectedBefore);
+
         void convertJson(String result);
         String getDataOffline();
         void resetArrayElementsOffline();
         void resetCategiries();
+        void setCurrentDateString(String currentDateString);
 
     }
     interface Presenter{
@@ -29,7 +30,7 @@ public interface MainScreenContract {
         String monthConvert(int month);
         void prepareParams(int yearSelected, int monthSelected, int daySelected);
         void initialValues();
-        boolean isEnable();
+
         boolean isAbort();
     }
     interface Model{
